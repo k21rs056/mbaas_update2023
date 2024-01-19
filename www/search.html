@@ -1,0 +1,213 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src * data: gap: content: https://ssl.gstatic.com; style-src * 'unsafe-inline'; script-src * 'unsafe-inline' 'unsafe-eval'">
+    <script src="components/loader.js"></script>
+    <link rel="stylesheet" href="components/loader.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="keys.js"></script>
+    <script>
+        let ncmb = new NCMB(appKey, clientKey);
+        let UTdata = ncmb.DataStore("UpdateTest");
+        let key = "score";
+
+        function searchname() {
+            let value = parseInt($("#data").val());
+            let name = $("#name").val();
+            let subject = $("#subject").val();
+            UTdata.equalTo("name",name).fetchAll()
+                .then(function (results) {
+                    showResults(results);
+                })
+        }
+
+         function searchsubject() {
+            let value = parseInt($("#data").val());
+            let name = $("#name").val();
+            let subject = $("#subject").val();
+            UTdata.equalTo("subject",subject).fetchAll()
+                .then(function (results) {
+                    showResults(results);
+                })
+        }
+
+         function searchscore() {
+            let value = parseInt($("#data").val());
+            let name = $("#name").val();
+            let subject = $("#subject").val();
+            UTdata.equalTo(key,value).fetchAll()
+                .then(function (results) {
+                    showResults(results);
+                })
+        }
+
+        function fetchAll() {
+            UTdata.fetchAll()
+                .then(function (results) {
+                    let msg = "";
+                    for (let i = 0; i < results.length; i++) {
+                        let name = results[i].get("name");
+                        let subject = results[i].get("subject");
+                        let score = results[i].get(key);
+
+                        msg += name + " " + subject + " " + score + "<br>";
+                    }
+                    $("#display").removeClass();
+                    $("#display").addClass("text-light");
+                    $("#display").addClass("bg-primary");
+                    $("#display").html(msg);
+                })
+                .catch(function (error) {
+                    $("#display").removeClass();
+                    $("#display").addClass("bg-warning");
+                    $("#display").html("delete fail:" + JSON.stringify(error));
+                })
+        }
+
+        function sortData() {
+            UTdata.order(key, true).fetchAll()
+                .then(function (results) {
+                    let msg = "";
+                    for (let i = 0; i < results.length; i++) {
+                        msg += results[i].get(key) + "<br>";
+                    }
+                    $("#display").removeClass();
+                    $("#display").addClass("text-light");
+                    $("#display").addClass("bg-primary");
+                    $("#display").html(msg);
+                })
+                .catch(function (error) {
+                    $("#display").removeClass();
+                    $("#display").addClass("bg-warning");
+                    $("#display").html("delete fail:" + JSON.stringify(error));
+                })
+        }
+
+        function countData() {
+            UTdata.count().fetchAll()
+                .then(function (results) {
+                    $("#display").removeClass();
+                    $("#display").addClass("bg-success");
+                    $("#display").html(results.count);
+                })
+                .catch(function (error) {
+                    $("#display").removeClass();
+                    $("#display").addClass("bg-warning");
+                    $("#display").html("count fail:" + JSON.stringify(error));
+                })
+        }
+
+        function deleteData() {
+            UTdata.fetch()
+                .then(function (results) {
+                    return results.delete();
+                })
+                .then(function (results) {
+                    $("#display").removeClass();
+                    $("#display").addClass("text-light");
+                    $("#display").addClass("bg-success");
+                    $("#display").html("delete success");
+                })
+                .catch(function (error) {
+                    $("#display").removeClass();
+                    $("#display").addClass("bg-warning");
+                    $("#display").html("delete fail:" + JSON.stringify(error));
+                })
+        }
+
+        function updateData() {
+            UTdata.fetch()
+                .then(function (results) {
+                    let value = parseInt($("#update").val());
+                    results.set(key, value);
+                    return results.update();
+                })
+                .then(function (results) {
+                    $("#display").removeClass();
+                    $("#display").addClass("text-light");
+                    $("#display").addClass("bg-success");
+                    $("#display").html("update success");
+                })
+                .catch(function (error) {
+                    $("#display").removeClass();
+                    $("#display").addClass("bg-warning");
+                    $("#display").html("update fail:" + JSON.stringify(error));
+                })
+        }
+
+        function AverageData() {
+            UTdata.fetchAll()
+                .then(function (results) {
+                    let sum = 0;
+
+                    // データの合計を計算
+                    for (let i = 0; i < results.length; i++) {
+                        sum += results[i].get(key);
+                    }
+
+                    // データの平均を計算
+                    const average = sum / results.length;
+
+                    // 結果を表示
+                    $("#display").removeClass();
+                    $("#display").addClass("text-light");
+                    $("#display").addClass("bg-info");
+                    $("#display").html("Average: " + average.toFixed(2)); // 平均を小数点以下2桁で表示
+                })
+                .catch(function (error) {
+                    $("#display").removeClass();
+                    $("#display").addClass("bg-warning");
+                    $("#display").html("Average calculation failed: " + JSON.stringify(error));
+                });
+        }
+
+        function showResults(results) {
+            let msg = "";
+                    for (let i = 0; i < results.length; i++) {
+                        let name = results[i].get("name");
+                        let subject = results[i].get("subject");
+                        let score = results[i].get(key);
+
+                        msg += name + " " + subject + " " + score + "<br>";
+                    }
+            $("#display").html(msg);
+        }
+
+        function entry() {
+            window.location.href = "index.html";
+        }
+    </script>
+</head>
+
+<body>
+    <h1 class="text-light bg-secondary">検索画面</h1>
+    <div>
+        <input type="text" id="name" placeholder="名前">
+        <a onclick="searchname()" class="btn btn-outline-secondary" role="button">SearchName</a><br>
+        <input type="text" id="subject" placeholder="教科">
+        <a onclick="searchsubject()" class="btn btn-outline-secondary" role="button">SearchSubject</a><br>
+        <input type="text" id="data" placeholder="スコア">
+        <a onclick="searchscore()" class="btn btn-outline-secondary" role="button">SearchScore</a><br>
+    </div>
+    <div>
+        <a onclick="fetchAll()" class="btn btn-outline-secondary" role="buton">Fetch All</a>
+        <a onclick="AverageData()" class="btn btn-outline-secondary" role="buton">Average</a>
+        <a onclick="sortData()" class="btn btn-outline-secondary" role="button">Sort</a>
+        <a onclick="countData()" class="btn btn-outline-primary" role="button">Count</a>
+        <a onclick="deleteData()" class="btn btn-outline-secondary" role="buton">Delete</a>
+    </div>
+    <div>
+        <input type="text" id="update" placeholder="更新">
+        <a onclick="updateData()" class="btn btn-outline-primary" role="button">Update</a>
+    </div>
+    <div id="display" class="text-light bg-info">
+        Results
+    </div>
+    <button onclick="entry()">登録画面</button>
+</body>
+
+</html>
